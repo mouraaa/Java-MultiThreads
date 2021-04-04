@@ -1,21 +1,16 @@
 import java.util.*;
-import javax.swing.JOptionPane; //for dialogue box
 
-public class Task {
+public class Task extends Thread {
 
 	public final int MIN_PID = 300;
 	public final int MAX_PID = 5000;
+	public final int MAX_TIME = 10000;
+	public final int MIN_TIME = 1000;
 	public LinkedHashMap<Integer,Integer> map = new LinkedHashMap<>();
 
 
 	public Task() {
-		int answer = allocate_map();
-		if(answer == 1) {
-			System.out.println(answer + " : Map allocation was successful");
-		}
-		else {
-			System.out.println(answer + " : Map allocation was not successful.");
-		}
+		allocate_map();
 	}
 
 	//creates a map and itializes all pids to 0
@@ -44,17 +39,36 @@ public class Task {
 		}
 	}
 
+	//the method needed for threads
+	//allocate_pid will also activate release_pid after a set of time
+	public void run() {
+		int answer = allocate_pid();
+		if(answer == -1) {
+			System.out.println("Allocating pid was unsuccessful");
+		}
+	}
+
 	//iterators through the map until it finds the first pid that can be allocated
 	//otherwise, returns -1
-	public int allocate_pid() {
+	public synchronized int allocate_pid() {
 		Iterator iterator = map.entrySet().iterator(); 
 		while(iterator.hasNext()) {
 			Map.Entry mapElement = (Map.Entry)iterator.next(); 
 			int key = (int)mapElement.getKey();
 			int value = (int)mapElement.getValue();
 			if(value == 0) {
-				System.out.println("\npid " + key + " was allocated successfuly.");
+				System.out.println("pid " + key + " was allocated successfully.");
 				map.replace(key,1);
+        		try {
+        			Random rnd = new Random();
+        			int sleep_time = rnd.nextInt(MAX_TIME - MIN_TIME + 1) + MIN_TIME;
+          			Thread.sleep(sleep_time);
+          			release_pid(key);
+        		}
+		        catch(Exception e) {
+		          System.out.println("error");
+		        }
+		        // System.out.println(); //add a space for prettier output
 				return key;
 			}
 		}
@@ -64,13 +78,9 @@ public class Task {
 	//iterators through the map until it finds the first pid that can be released
 	//otherwise, prints all in use
 	public void release_pid(int int_pid) {
-		if(map.containsKey(int_pid) && map.get(int_pid) == 1) {
-			map.replace(int_pid,0);
-			JOptionPane.showMessageDialog(null, "pid " + int_pid +  " was released successfully.");
-		}
-		else {
-			JOptionPane.showMessageDialog(null, int_pid + " was either not in the map or not in use.\nPlease try again.");
-		}
+		map.replace(int_pid,0);
+		System.out.println("pid " + int_pid +  " was released successfully.");
+		
 	}
 }
 

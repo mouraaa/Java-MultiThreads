@@ -1,44 +1,32 @@
 import java.util.*;
-import javax.swing.JOptionPane;
 
 public class PidManager {
 	public static void main(String[] args) {
 
 		Task task = new Task();
-		ask(task);
-	}
+		int answer = task.allocate_map();
+		if(answer == 1) {
+			System.out.println(answer + " : Map allocation was successful\n");
+		}
+		else {
+			System.out.println(answer + " : Map allocation was not successful.\n");
+		}
 
-	//repeatedly asks the user what they would like to do
-	//also takes care of edge cases
-	public static void ask(Task task) {
-
-		int answer = 0;
-		Scanner input = new Scanner(System.in);
-		while(answer != 1 || answer != 2 || answer != 3) {
-			System.out.print("\nWhat would you like to do?\nAllocate a pid (1)\nRelease a pid (2)\nEnd program (3)\nAnswer: ");
-			try {
-				answer = input.nextInt();
-				if(answer == 1) {
-					int key = task.allocate_pid();
-					if(key == -1) {
-						JOptionPane.showMessageDialog(null, key + " : No pids were available" );
-					}
+		//array of all the different tasks so each one can use a thread
+		Task[] tasks = new Task[10];
+		for(int i = 0; i < 10; i++) {
+			tasks[i] = new Task();
+			tasks[i].start(); //runs the thread while the loop continues running
+			//separate the output
+			if(i == 9) {
+				//sometimes thread 9 happens before this condition, so wait 
+				try {
+					Thread.sleep(50); 
+        		}
+		        catch(Exception e) {
+		          System.out.println("error");
 				}
-				else if(answer == 2) {
-					System.out.print("\nWhat pid number would you like to release?\nAnswer: ");
-					int int_pid = input.nextInt();
-					task.release_pid(int_pid);
-				}
-				else if(answer == 3) {
-					break;
-				}
-				else {
-					JOptionPane.showMessageDialog(null, "\nThat was an invalid answer. Please try again.");
-				}
-			}
-			catch(Exception e) {
-				JOptionPane.showMessageDialog(null, "That was an invalid answer. Please try again.");
-				ask(task);
+				System.out.println("-----------------------------------");
 			}
 		}
 	}
